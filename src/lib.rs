@@ -22,6 +22,7 @@
 // In our library, some of the arithmetic involving extension fields will necessarily
 // involve various binary operators, and so this lint is triggered unnecessarily.
 #![allow(clippy::suspicious_arithmetic_impl)]
+#![feature(llvm_asm)]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;

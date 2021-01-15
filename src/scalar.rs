@@ -304,39 +304,40 @@ impl Scalar {
     /// Converts from an integer represented in little endian
     /// into its (congruent) `Scalar` representation.
     pub const fn from_raw(val: [u64; 4]) -> Self {
-        (&Scalar(val)).mul(&R2)
+        (Scalar(val)).mul(R2)
     }
 
     /// Squares this element.
-    #[inline]
-    pub const fn square(&self) -> Scalar {
-        let (r1, carry) = mac(0, self.0[0], self.0[1], 0);
-        let (r2, carry) = mac(0, self.0[0], self.0[2], carry);
-        let (r3, r4) = mac(0, self.0[0], self.0[3], carry);
+    pub fn square(self) -> Scalar {
 
-        let (r3, carry) = mac(r3, self.0[1], self.0[2], 0);
-        let (r4, r5) = mac(r4, self.0[1], self.0[3], carry);
+        self.mul(Scalar([self.0[0],self.0[1],self.0[2],self.0[3]]))
+        // let (r1, carry) = mac(0, self.0[0], self.0[1], 0);
+        // let (r2, carry) = mac(0, self.0[0], self.0[2], carry);
+        // let (r3, r4) = mac(0, self.0[0], self.0[3], carry);
 
-        let (r5, r6) = mac(r5, self.0[2], self.0[3], 0);
+        // let (r3, carry) = mac(r3, self.0[1], self.0[2], 0);
+        // let (r4, r5) = mac(r4, self.0[1], self.0[3], carry);
 
-        let r7 = r6 >> 63;
-        let r6 = (r6 << 1) | (r5 >> 63);
-        let r5 = (r5 << 1) | (r4 >> 63);
-        let r4 = (r4 << 1) | (r3 >> 63);
-        let r3 = (r3 << 1) | (r2 >> 63);
-        let r2 = (r2 << 1) | (r1 >> 63);
-        let r1 = r1 << 1;
+        // let (r5, r6) = mac(r5, self.0[2], self.0[3], 0);
 
-        let (r0, carry) = mac(0, self.0[0], self.0[0], 0);
-        let (r1, carry) = adc(0, r1, carry);
-        let (r2, carry) = mac(r2, self.0[1], self.0[1], carry);
-        let (r3, carry) = adc(0, r3, carry);
-        let (r4, carry) = mac(r4, self.0[2], self.0[2], carry);
-        let (r5, carry) = adc(0, r5, carry);
-        let (r6, carry) = mac(r6, self.0[3], self.0[3], carry);
-        let (r7, _) = adc(0, r7, carry);
+        // let r7 = r6 >> 63;
+        // let r6 = (r6 << 1) | (r5 >> 63);
+        // let r5 = (r5 << 1) | (r4 >> 63);
+        // let r4 = (r4 << 1) | (r3 >> 63);
+        // let r3 = (r3 << 1) | (r2 >> 63);
+        // let r2 = (r2 << 1) | (r1 >> 63);
+        // let r1 = r1 << 1;
 
-        Scalar::montgomery_reduce(r0, r1, r2, r3, r4, r5, r6, r7)
+        // let (r0, carry) = mac(0, self.0[0], self.0[0], 0);
+        // let (r1, carry) = adc(0, r1, carry);
+        // let (r2, carry) = mac(r2, self.0[1], self.0[1], carry);
+        // let (r3, carry) = adc(0, r3, carry);
+        // let (r4, carry) = mac(r4, self.0[2], self.0[2], carry);
+        // let (r5, carry) = adc(0, r5, carry);
+        // let (r6, carry) = mac(r6, self.0[3], self.0[3], carry);
+        // let (r7, _) = adc(0, r7, carry);
+
+        // Scalar::montgomery_reduce(r0, r1, r2, r3, r4, r5, r6, r7)
     }
 
     /// Computes the square root of this element, if it exists.
@@ -570,29 +571,29 @@ impl Scalar {
     }
 
     /// Multiplies `rhs` by `self`, returning the result.
-    #[inline]
-    pub const fn mul(&self, rhs: &Self) -> Self {
+    pub const fn mul(self, rhs: Self) -> Self {
+        let lhs = self.0;
         // Schoolbook multiplication
 
-        let (r0, carry) = mac(0, self.0[0], rhs.0[0], 0);
-        let (r1, carry) = mac(0, self.0[0], rhs.0[1], carry);
-        let (r2, carry) = mac(0, self.0[0], rhs.0[2], carry);
-        let (r3, r4) = mac(0, self.0[0], rhs.0[3], carry);
+        let (r0, carry) = mac(0, lhs[0], rhs.0[0], 0);
+        let (r1, carry) = mac(0, lhs[0], rhs.0[1], carry);
+        let (r2, carry) = mac(0, lhs[0], rhs.0[2], carry);
+        let (r3, r4) = mac(0, lhs[0], rhs.0[3], carry);
 
-        let (r1, carry) = mac(r1, self.0[1], rhs.0[0], 0);
-        let (r2, carry) = mac(r2, self.0[1], rhs.0[1], carry);
-        let (r3, carry) = mac(r3, self.0[1], rhs.0[2], carry);
-        let (r4, r5) = mac(r4, self.0[1], rhs.0[3], carry);
+        let (r1, carry) = mac(r1, lhs[1], rhs.0[0], 0);
+        let (r2, carry) = mac(r2, lhs[1], rhs.0[1], carry);
+        let (r3, carry) = mac(r3, lhs[1], rhs.0[2], carry);
+        let (r4, r5) = mac(r4, lhs[1], rhs.0[3], carry);
 
-        let (r2, carry) = mac(r2, self.0[2], rhs.0[0], 0);
-        let (r3, carry) = mac(r3, self.0[2], rhs.0[1], carry);
-        let (r4, carry) = mac(r4, self.0[2], rhs.0[2], carry);
-        let (r5, r6) = mac(r5, self.0[2], rhs.0[3], carry);
+        let (r2, carry) = mac(r2, lhs[2], rhs.0[0], 0);
+        let (r3, carry) = mac(r3, lhs[2], rhs.0[1], carry);
+        let (r4, carry) = mac(r4, lhs[2], rhs.0[2], carry);
+        let (r5, r6) = mac(r5, lhs[2], rhs.0[3], carry);
 
-        let (r3, carry) = mac(r3, self.0[3], rhs.0[0], 0);
-        let (r4, carry) = mac(r4, self.0[3], rhs.0[1], carry);
-        let (r5, carry) = mac(r5, self.0[3], rhs.0[2], carry);
-        let (r6, r7) = mac(r6, self.0[3], rhs.0[3], carry);
+        let (r3, carry) = mac(r3, lhs[3], rhs.0[0], 0);
+        let (r4, carry) = mac(r4, lhs[3], rhs.0[1], carry);
+        let (r5, carry) = mac(r5, lhs[3], rhs.0[2], carry);
+        let (r6, r7) = mac(r6, lhs[3], rhs.0[3], carry);
 
         Scalar::montgomery_reduce(r0, r1, r2, r3, r4, r5, r6, r7)
     }

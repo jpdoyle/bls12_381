@@ -7,6 +7,36 @@ use bls12_381::*;
 use criterion::{black_box, Criterion};
 
 fn criterion_benchmark(c: &mut Criterion) {
+    // Scalar
+    {
+        let name = "Scalar";
+        let s = Scalar::from_raw([1, 2, 3, 4]);
+        let t = Scalar::from_raw([1, 2, 3, 4]);
+        const N: u64 = 10000;
+
+        c.bench_function(&format!("{} Scalar square", name), move |b| {
+            b.iter(|| black_box(s).square())
+        });
+        c.bench_function(&format!("{} Scalar Addition", name), move |b| {
+            b.iter(|| black_box(s)+black_box(t))
+        });
+        c.bench_function(&format!("{} Scalar Subtraction", name), move |b| {
+            b.iter(|| black_box(s)-black_box(t))
+        });
+        c.bench_function(&format!("{} Scalar Multiplication", name), move |b| {
+            b.iter(|| black_box(s)-black_box(t))
+        });
+        c.bench_function(&format!("{} Scalar mul-self", name), move |b| {
+            b.iter(|| black_box(s)*black_box(s))
+        });
+        c.bench_function(&format!("{} Scalar Exponentiation", name), move |b| {
+            b.iter(|| black_box(s).pow(&[N,0,0,0]))
+        });
+        c.bench_function(&format!("{} Scalar Inversion", name), move |b| {
+            b.iter(|| black_box(s).invert())
+        });
+    }
+
     // Pairings
     {
         let g = G1Affine::generator();
@@ -164,6 +194,7 @@ fn criterion_benchmark(c: &mut Criterion) {
             })
         });
     }
+
 }
 
 criterion_group!(benches, criterion_benchmark);
